@@ -470,7 +470,8 @@
       };
       let f = "全部",
         q = "",
-        chosen = null;
+        chosen = null,
+        currentView = 0;
       const jobs = [
         ["辦理註冊、課務問題", 0],
         ["請假、生活管理", 1],
@@ -486,7 +487,7 @@
           (x) =>
             `<button class="${f == x ? "on" : ""}" onclick="f='${x}';draw()">${x}</button>`,
         ).join("");
-        pins.innerHTML = P.filter(
+        pins.innerHTML = currentView === 0 ? P.filter(
           (x) =>
             (f === "全部" || (groups[x[0]] || [x[2]]).includes(f)) &&
             x.join(" ").toLowerCase().includes(q.toLowerCase()),
@@ -495,7 +496,8 @@
             (x) =>
               `<button aria-label="查看${x[0]}" data-label="${x[0]}" class="pin ${chosen === x ? "on" : ""}" style="left:${x[3]}%;top:${x[4]}%" onclick="show(${P.indexOf(x)})"></button>`,
           )
-          .join("");
+          .join("") : "";
+        document.querySelector(".hint").style.display = currentView === 0 ? "block" : "none";
       }
       function show(i) {
         let x = P[i];
@@ -516,9 +518,14 @@
         q = e.target.value;
         draw();
       };
+      function selectView(i) {
+        currentView = i;
+        map.src = V[i];
+        view.querySelectorAll("button").forEach((button, index) => button.classList.toggle("on", index === i));
+        draw();
+      }
       view.innerHTML = V.map(
-        (x, i) =>
-          `<button onclick="map.src='${x}';this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on')" class="${i ? "" : "on"}">${i + 1}</button>`,
+        (x, i) => `<button onclick="selectView(${i})" class="${i ? "" : "on"}">${i + 1}</button>`,
       ).join("");
       tasks.innerHTML = jobs
         .map(
