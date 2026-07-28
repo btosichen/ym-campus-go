@@ -110,21 +110,45 @@
       }
       .pin {
         position: absolute;
-        /* Offset left and below the built-in yellow label instead of covering it. */
-        transform: translate(-125%, 115%);
+        transform: translate(-50%, -50%);
         border: 0;
-        width: 30px;
-        height: 30px;
+        width: 0;
+        height: 0;
+        padding: 0;
+        background: none;
+      }
+      .pin:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 50%;
+        top: 0;
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
+        padding: 4px 8px;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: bold;
+        box-shadow: 0 3px 10px #10233438;
+      }
+      .pin:after {
+        content: "";
+        position: absolute;
+        left: -8px;
+        top: 13px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
-        background: #ef5a58;
+        background: #168aa7;
         border: 4px solid #fff;
         box-shadow: 0 2px 8px #0008;
       }
       .pin.on {
-        background: var(--yellow);
-        box-shadow:
-          0 0 0 7px #f6c84c88,
-          0 2px 8px #0007;
+        background: none;
+      }
+      .pin.on:after {
+        background: #ef5a58;
       }
       .view {
         position: absolute;
@@ -279,7 +303,7 @@
         <img id="map" src="campus-overview.png" alt="陽明高中互動校園地圖" />
         <div id="pins"></div>
         <div class="view" id="view"></div>
-        <div class="hint">點選紅點查看建築資訊</div>
+        <div class="hint">點選白色標籤查看地點說明</div>
       </div>
     </main>
     <section class="tasks">
@@ -293,12 +317,6 @@
         <p class="tag" id="type"></p>
         <h2 id="title"></h2>
         <div class="facilities" id="fac"></div>
-        <div class="route">
-          <b>從校門出發</b>
-          <div id="route"></div>
-          <small id="minutes" style="color: #17a49b; font-weight: bold"></small>
-        </div>
-        <button class="go" onclick="closeSheet()">✦ 在地圖上查看位置</button>
       </article>
     </div>
     <script>
@@ -364,8 +382,8 @@
           "專科教室",
           53,
           8,
-          "圖書館、創新教室、國中部教師辦公室、系統管理室、電腦教室、物理實驗室、化學實驗室",
-          "圖書館 借書 閱讀 國中教師 老師 創新 電腦 實驗",
+          "圖書館、創新教室、國中部教師辦公室、系統管理室、電腦教室、物理實驗室、化學實驗室、合作社",
+          "圖書館 借書 閱讀 合作社 文具 用品 國中教師 老師 創新 電腦 實驗",
           "從校門沿中央步道往北，經立志樓後繼續前行。",
           5,
         ],
@@ -442,7 +460,13 @@
           "campus-angle-2.png",
           "campus-angle-3.png",
         ],
-        C = ["全部", "行政服務", "普通教室", "專科教室", "運動場館"];
+        C = ["全部", "行政服務", "普通教室", "專科教室", "運動場館", "生活服務"];
+      const groups = {
+        "向陽樓": ["行政服務", "普通教室"],
+        "悅聞樓": ["行政服務", "專科教室", "生活服務"],
+        "求真樓": ["行政服務", "普通教室", "專科教室"],
+        "活動中心": ["行政服務", "專科教室", "運動場館"],
+      };
       let f = "全部",
         q = "",
         chosen = null;
@@ -463,12 +487,12 @@
         ).join("");
         pins.innerHTML = P.filter(
           (x) =>
-            (f === "全部" || x[2] === f) &&
+            (f === "全部" || (groups[x[0]] || [x[2]]).includes(f)) &&
             x.join(" ").toLowerCase().includes(q.toLowerCase()),
         )
           .map(
             (x) =>
-              `<button aria-label="查看${x[0]}" class="pin ${chosen === x ? "on" : ""}" style="left:${x[3]}%;top:${x[4]}%" onclick="show(${P.indexOf(x)})"></button>`,
+              `<button aria-label="查看${x[0]}" data-label="${x[0]}" class="pin ${chosen === x ? "on" : ""}" style="left:${x[3]}%;top:${x[4]}%" onclick="show(${P.indexOf(x)})"></button>`,
           )
           .join("");
       }
@@ -481,8 +505,6 @@
           .split("、")
           .map((y) => "<span>" + y + "</span>")
           .join("");
-        route.textContent = x[7];
-        minutes.textContent = "步行約 " + x[8] + " 分鐘";
         sheet.classList.add("show");
         draw();
       }
