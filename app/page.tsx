@@ -12,22 +12,25 @@ type Place = {
   keywords: string[];
   route: string;
   minutes: number;
+  filters?: Array<Place["category"]>;
 };
 
 const places: Place[] = [
   { id: "gate", name: "校門口", en: "Main Gate", category: "生活服務", position: [69, 75], facilities: ["警衛室", "訪客報到", "校園導覽起點"], keywords: ["校門", "警衛", "報到", "入口"], route: "從校門口出發，依畫面箭頭前往目的地。", minutes: 0 },
   { id: "admin", name: "行政樓", en: "Administration Building", category: "行政服務", position: [65, 49], facilities: ["校長室", "簡報室", "教務處", "人事室", "會計室", "家長會", "油印室"], keywords: ["註冊", "課務", "教務", "行政", "成績", "校長", "人事", "會計", "家長會"], route: "從校門進入後直行，穿過前庭即可抵達。", minutes: 2 },
-  { id: "xiangyang", name: "向陽樓", en: "Xiangyang Building", category: "行政服務", position: [66, 27], facilities: ["學務處", "教官室", "健康中心", "軍訓教室", "健護教室", "高二教室 13 間"], keywords: ["請假", "生病", "健康", "護理師", "學務", "教官", "高二"], route: "從校門進入後往右前方，沿行政樓旁步道前行。", minutes: 3 },
-  { id: "zhixing", name: "知行館", en: "Zhixing Hall", category: "行政服務", position: [50, 42], facilities: ["輔導室", "生涯教室", "教師會", "高中部教師辦公室 3 間"], keywords: ["輔導", "諮商", "生涯", "心理", "教師會"], route: "從校門直行至活動中心前，向左沿中庭步道前往。", minutes: 3 },
-  { id: "lizhi", name: "立志樓", en: "Lizhi Building", category: "普通教室", position: [48, 19], facilities: ["特教組", "員生合作社", "教練休息室", "語言教室", "視聽教室", "國中教室 18 間", "高一教室 13 間"], keywords: ["國中", "合作社", "文具", "用品", "特教", "高一", "語言"], route: "從校門往校園中央前進，經行政樓後向左走。", minutes: 4 },
+  { id: "xiangyang", name: "向陽樓", en: "Xiangyang Building", category: "行政服務", filters: ["行政服務", "普通教室"], position: [65, 20], facilities: ["學務處", "教官室", "健康中心", "軍訓教室", "健護教室", "高二教室 13 間"], keywords: ["請假", "生病", "健康", "護理師", "學務", "教官", "高二"], route: "從校門進入後往右前方，沿行政樓旁步道前行。", minutes: 3 },
+  { id: "zhixing", name: "知行館", en: "Zhixing Hall", category: "行政服務", position: [51, 40], facilities: ["輔導室", "生涯教室", "教師會", "高中部教師辦公室 3 間"], keywords: ["輔導", "諮商", "生涯", "心理", "教師會"], route: "從校門直行至活動中心前，向左沿中庭步道前往。", minutes: 3 },
+  { id: "lizhi", name: "立志樓", en: "Lizhi Building", category: "普通教室", position: [48, 15], facilities: ["特教組", "員生合作社", "教練休息室", "語言教室", "視聽教室", "國中教室 18 間", "高一教室 13 間"], keywords: ["國中", "合作社", "文具", "用品", "特教", "高一", "語言"], route: "從校門往校園中央前進，經行政樓後向左走。", minutes: 4 },
   { id: "qin", name: "勤學樓", en: "Qinxue Building", category: "普通教室", position: [74, 34], facilities: ["家政教室", "會議室", "社團教室", "高三教室 13 間"], keywords: ["高中", "高三", "家政", "會議", "社團", "教室"], route: "從校門進入後右轉，沿右側林蔭道前行。", minutes: 3 },
-  { id: "yuewen", name: "悅聞樓", en: "Yuewen Building", category: "專科教室", position: [53, 8], facilities: ["圖書館", "創新教室", "國中部教師辦公室", "系統管理室", "電腦教室", "物理實驗室", "化學實驗室"], keywords: ["圖書館", "借書", "閱讀", "國中教師", "老師", "創新", "電腦", "實驗"], route: "從校門沿中央步道往北，經立志樓後繼續前行。", minutes: 5 },
-  { id: "qiuzhen", name: "求真樓", en: "Qiuzhen Building", category: "專科教室", position: [73, 10], facilities: ["設備組", "生物教室", "社科教室", "地科教室", "化學教室", "物理教室"], keywords: ["設備", "生物", "社科", "地科", "化學", "物理", "專科"], route: "從校門右轉，沿右側道路前往校園北側。", minutes: 5 },
+  { id: "yuewen", name: "悅聞樓", en: "Yuewen Building", category: "專科教室", filters: ["行政服務", "專科教室", "生活服務"], position: [52, 5.5], facilities: ["圖書館", "創新教室", "國中部教師辦公室", "系統管理室", "電腦教室", "物理實驗室", "化學實驗室", "合作社"], keywords: ["圖書館", "借書", "閱讀", "合作社", "文具", "用品", "國中教師", "老師", "創新", "電腦", "實驗"], route: "從校門沿中央步道往北，經立志樓後繼續前行。", minutes: 5 },
+  { id: "qiuzhen", name: "求真樓", en: "Qiuzhen Building", category: "專科教室", filters: ["行政服務", "普通教室", "專科教室"], position: [69.5, 8.5], facilities: ["設備組", "生物教室", "社科教室", "地科教室", "化學教室", "物理教室"], keywords: ["設備", "生物", "社科", "地科", "化學", "物理", "專科"], route: "從校門右轉，沿右側道路前往校園北側。", minutes: 5 },
   { id: "art", name: "藝采樓", en: "Yicai Building", category: "專科教室", position: [79, 55], facilities: ["生科教室", "烹飪教室", "韻律教室", "藝術教室", "家政教室", "童軍教室", "美術教室"], keywords: ["生科", "烹飪", "韻律", "藝術", "家政", "童軍", "美術"], route: "從校門直行後向右，經行政樓前庭即可抵達。", minutes: 2 },
-  { id: "activity", name: "活動中心", en: "Activity Center", category: "行政服務", position: [55, 66], facilities: ["總務處", "修繕室", "器材室", "體育組", "校史室", "葫蘆教室", "鳥巢教室", "樂學齋", "視聽教室", "社會教室", "健體教室", "小會議室", "陽明劇院", "音樂教室", "電腦教室", "地理教室", "檔案室", "籃球場", "演藝廳", "地下停車場"], keywords: ["總務", "修繕", "器材", "體育組", "校史", "劇院", "演藝廳", "音樂", "電腦", "地理", "停車"], route: "從校門進入後向左前方走，活動中心就在前方。", minutes: 2 },
-  { id: "taiyuan", name: "台元館", en: "Taiyuan Gymnasium", category: "運動場館", position: [49, 34], facilities: ["體育館"], keywords: ["體育", "室內", "球場", "集合"], route: "從校門走向活動中心，再沿操場內側步道前往。", minutes: 4 },
-  { id: "pool", name: "漾泉館", en: "Yangquan Pool", category: "運動場館", position: [42, 9], facilities: ["溫水游泳池"], keywords: ["游泳", "泳池", "游泳課"], route: "從校門往中央步道北行，穿過立志樓旁步道。", minutes: 5 },
+  { id: "activity", name: "活動中心", en: "Activity Center", category: "行政服務", filters: ["行政服務", "專科教室", "運動場館"], position: [55, 66], facilities: ["總務處", "修繕室", "器材室", "體育組", "校史室", "葫蘆教室", "鳥巢教室", "樂學齋", "視聽教室", "社會教室", "健體教室", "小會議室", "陽明劇院", "音樂教室", "電腦教室", "地理教室", "檔案室", "籃球場", "演藝廳", "地下停車場"], keywords: ["總務", "修繕", "器材", "體育組", "校史", "劇院", "演藝廳", "音樂", "電腦", "地理", "停車"], route: "從校門進入後向左前方走，活動中心就在前方。", minutes: 2 },
+  { id: "taiyuan", name: "台元館", en: "Taiyuan Gymnasium", category: "運動場館", position: [47, 31], facilities: ["體育館"], keywords: ["體育", "室內", "球場", "集合"], route: "從校門走向活動中心，再沿操場內側步道前往。", minutes: 4 },
+  { id: "pool", name: "漾泉館", en: "Yangquan Pool", category: "運動場館", position: [40, 6.5], facilities: ["溫水游泳池"], keywords: ["游泳", "泳池", "游泳課"], route: "從校門往中央步道北行，穿過立志樓旁步道。", minutes: 5 },
   { id: "track", name: "操場", en: "Athletic Field", category: "運動場館", position: [27, 54], facilities: ["田徑場", "戶外集合區"], keywords: ["操場", "田徑", "跑步", "體育課"], route: "從校門向左前方前行，沿活動中心外側即可到達。", minutes: 3 },
+  { id: "tennis", name: "網球場", en: "Tennis Courts", category: "運動場館", position: [88, 44], facilities: ["戶外網球場"], keywords: ["網球", "球場", "運動"], route: "從校門向右前方走，沿藝采樓外側步道即可到達。", minutes: 4 },
+  { id: "guard", name: "警衛室", en: "Guard House", category: "生活服務", position: [65.5, 82], facilities: ["訪客諮詢", "校園安全"], keywords: ["警衛", "訪客", "安全", "報到"], route: "位於校門口旁，入校後即可看見。", minutes: 1 },
 ];
 
 const views = [
@@ -48,14 +51,13 @@ export default function Home() {
   const [selected, setSelected] = useState<Place | null>(null);
   const [view, setView] = useState(0);
   const [filter, setFilter] = useState("全部");
-  const [showRoute, setShowRoute] = useState(false);
   const [mode, setMode] = useState("新生");
 
   const results = useMemo(() => {
     const text = query.trim().toLowerCase();
-    return places.filter((place) => (filter === "全部" || place.category === filter) && (!text || [place.name, place.en, ...place.facilities, ...place.keywords].join(" ").toLowerCase().includes(text)));
+    return places.filter((place) => (filter === "全部" || (place.filters ?? [place.category]).includes(filter as Place["category"])) && (!text || [place.name, place.en, ...place.facilities, ...place.keywords].join(" ").toLowerCase().includes(text)));
   }, [query, filter]);
-  const choose = (place: Place) => { setSelected(place); setShowRoute(false); };
+  const choose = (place: Place) => { setSelected(place); };
 
   return (
     <main>
@@ -70,10 +72,9 @@ export default function Home() {
         <div className="chips">{["全部", "行政服務", "普通教室", "專科教室", "運動場館", "生活服務"].map((item) => <button key={item} className={filter === item ? "selected" : ""} onClick={() => setFilter(item)}>{item}</button>)}</div>
         <div className="map-shell">
           <img src={views[view].src} alt={`${views[view].label}校園地圖`} className="campus-map" />
-          {view === 0 && results.map((place) => <button key={place.id} className={`map-pin ${selected?.id === place.id ? "focus" : ""}`} style={{ left: `${place.position[0]}%`, top: `${place.position[1]}%` }} onClick={() => choose(place)} aria-label={`查看${place.name}`}><i></i></button>)}
-          {showRoute && selected && view === 0 && <><div className="route-line" style={{ width: `${Math.hypot(selected.position[0] - 69, selected.position[1] - 75)}%`, left: "69%", top: "75%", transform: `rotate(${Math.atan2(selected.position[1] - 75, selected.position[0] - 69) * 180 / Math.PI}deg)` }}></div><div className="route-bubble">校門出發 · 約 {selected.minutes} 分鐘</div></>}
+          {view === 0 && results.map((place) => <button key={place.id} className={`map-pin ${selected?.id === place.id ? "focus" : ""}`} style={{ left: `${place.position[0]}%`, top: `${place.position[1]}%` }} onClick={() => choose(place)} aria-label={`查看${place.name}`}><i></i><span>{place.name}</span></button>)}
           <div className="view-controls">{views.map((item, index) => <button key={item.label} onClick={() => setView(index)} className={view === index ? "current" : ""}>{index + 1}<span>{item.label}</span></button>)}</div>
-          {view === 0 && <div className="map-hint">點選建築標記開始導覽</div>}
+          {view === 0 && <div className="map-hint">點選白色標籤查看地點說明</div>}
         </div>
       </section>
 
@@ -81,7 +82,7 @@ export default function Home() {
 
       <section className="legend"><p>地圖圖例</p>{["行政服務", "普通教室", "專科教室", "運動場館", "生活服務"].map((item) => <span key={item} className={`legend-${item}`}>{item}</span>)}</section>
 
-      {selected && <div className="sheet-backdrop" onClick={() => setSelected(null)}><aside className="info-sheet" onClick={(e) => e.stopPropagation()}><button className="close" onClick={() => setSelected(null)} aria-label="關閉">×</button><div className={`place-icon icon-${selected.category}`}>⌖</div><p className="eyebrow">{selected.category} · {selected.en}</p><h2>{selected.name}</h2><div className="facilities">{selected.facilities.map((item) => <span key={item}>{item}</span>)}</div><div className="route-copy"><b>從校門出發</b><p>{selected.route}</p><small>步行約 {selected.minutes} 分鐘</small></div><button className="route-button" onClick={() => { setShowRoute(true); setView(0); }}>✦ 顯示校門導航路線</button></aside></div>}
+      {selected && <div className="sheet-backdrop" onClick={() => setSelected(null)}><aside className="info-sheet" onClick={(e) => e.stopPropagation()}><button className="close" onClick={() => setSelected(null)} aria-label="關閉">×</button><div className={`place-icon icon-${selected.category}`}>⌖</div><p className="eyebrow">{selected.category} · {selected.en}</p><h2>{selected.name}</h2><div className="facilities">{selected.facilities.map((item) => <span key={item}>{item}</span>)}</div></aside></div>}
     </main>
   );
 }
