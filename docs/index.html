@@ -285,6 +285,7 @@
         }
       }
     </style>
+    <link rel="stylesheet" href="builder.css" />
   </head>
   <body>
     <header class="hero">
@@ -294,6 +295,11 @@
       <p>手機優先的校園地圖，陪你找到每一個重要地點。</p>
     </header>
     <main class="wrap">
+      <nav class="mode-tabs" role="tablist" aria-label="模式切換">
+        <button type="button" role="tab" id="tabGuide" aria-selected="true" aria-controls="guideMode">🧭 校園導覽</button>
+        <button type="button" role="tab" id="tabBuilder" aria-selected="false" aria-controls="builderMode">🏗️ 校園建設遊戲</button>
+      </nav>
+      <div id="guideMode" role="tabpanel" aria-labelledby="tabGuide">
       <label class="search"
         ><span>⌕</span
         ><input id="search" placeholder="搜尋處室、教室或地點，例如：健康中心"
@@ -305,8 +311,57 @@
         <div class="view" id="view"></div>
         <div class="hint">點選白色標籤查看地點說明</div>
       </div>
+      </div>
+      <section id="builderMode" role="tabpanel" aria-labelledby="tabBuilder" hidden>
+        <div class="b-toolbar" id="bToolbar" role="toolbar" aria-label="建設工具列">
+          <div class="b-group">
+            <button type="button" class="b-tool" data-tool="select" aria-pressed="true">👆 選取</button>
+            <button type="button" class="b-tool" data-tool="add" aria-pressed="false">➕ 新增</button>
+            <button type="button" class="b-tool" data-tool="move" aria-pressed="false">✥ 移動</button>
+            <button type="button" class="b-tool" data-tool="demolish" aria-pressed="false">🧨 拆除</button>
+          </div>
+          <span class="b-sep"></span>
+          <div class="b-group">
+            <button type="button" class="b-btn" id="bUndo" disabled>↶ 復原</button>
+            <button type="button" class="b-btn" id="bRedo" disabled>↷ 重做</button>
+            <button type="button" class="b-btn b-primary" id="bSave">💾 儲存進度</button>
+            <button type="button" class="b-btn" id="bClearLots" disabled>🧹 清除空地</button>
+            <button type="button" class="b-btn" id="bAge" aria-pressed="false">🏚️ 屋齡圖層</button>
+          </div>
+          <span class="b-spacer"></span>
+          <div class="b-group">
+            <button type="button" class="b-btn b-reset" id="bReset">⟲ 恢復原始校園</button>
+            <button type="button" class="b-btn" id="bBack">← 返回校園導覽</button>
+          </div>
+        </div>
+        <div class="b-layout">
+          <div>
+            <div class="map b-map" id="bMap">
+              <img src="campus-overview.png" alt="校園建設遊戲地圖（原始校園地圖副本）" />
+              <div class="b-layer" id="bLayer"></div>
+            </div>
+            <p class="b-status" id="bStatus" role="status" aria-live="polite"></p>
+          </div>
+          <aside class="b-panel" id="bPanel" aria-label="遊戲面板">
+            <div class="b-box"><h3>遊戲狀態</h3><div class="b-stats" id="bStats"></div></div>
+            <div class="b-box" id="bSelection"></div>
+            <div class="b-box">
+              <h3>建築選單</h3>
+              <p id="bCatalogHint"></p>
+              <div class="b-catalog" id="bCatalog"></div>
+            </div>
+            <div class="b-box">
+              <h3>建議更新清單</h3>
+              <p>以下建築屋齡已達 50 年以上，可優先評估更新（不會自動拆除）。</p>
+              <ul class="b-list" id="bRenewal"></ul>
+            </div>
+            <div class="b-box"><h3>任務</h3><ul class="b-list" id="bMissions"></ul></div>
+            <div class="b-box"><h3>建設紀錄</h3><ul class="b-list b-log" id="bLog"></ul></div>
+          </aside>
+        </div>
+      </section>
     </main>
-    <section class="tasks">
+    <section class="tasks" id="guideTasks">
       <p class="eyebrow" style="color: #17a49b; margin: 0 0 8px">常用目的地</p>
       <h2>你想去哪裡？</h2>
       <div class="grid" id="tasks"></div>
@@ -538,5 +593,7 @@
         if (e.target === sheet) closeSheet();
       };
     </script>
+    <script src="builder-art.js"></script>
+    <script src="builder.js"></script>
   </body>
 </html>

@@ -1,0 +1,466 @@
+/* =========================================================
+   YM Campus GO － 模式頁籤 + 校園建設遊戲（獨立樣式）
+   所有遊戲樣式皆使用 b- 前綴，不影響原有校園導覽樣式。
+   ========================================================= */
+
+.mode-tabs {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 6px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 12px 30px #17364522;
+}
+.mode-tabs button {
+  flex: 1;
+  border: 0;
+  border-radius: 11px;
+  padding: 11px 8px;
+  background: transparent;
+  color: #49606a;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.mode-tabs button[aria-selected="true"] {
+  background: var(--ink);
+  color: #fff;
+}
+.mode-tabs button:focus-visible,
+.b-tool:focus-visible,
+.b-btn:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- 工具列 ---------- */
+.b-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 22px #17364518;
+}
+.b-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.b-sep {
+  width: 1px;
+  align-self: stretch;
+  background: #dbe2df;
+  margin: 0 3px;
+}
+.b-tool,
+.b-btn {
+  border: 1px solid #dbe2df;
+  background: #fff;
+  color: #29404b;
+  border-radius: 10px;
+  padding: 8px 11px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.b-tool[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.b-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.b-btn.b-primary {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+.b-btn.b-danger {
+  background: #fff1ef;
+  border-color: #ef5a58;
+  color: #c0302d;
+}
+.b-btn.b-reset {
+  background: #ef5a58;
+  border-color: #ef5a58;
+  color: #fff;
+  font-weight: bold;
+}
+.b-btn.b-on {
+  background: var(--yellow);
+  border-color: var(--yellow);
+}
+.b-spacer {
+  flex: 1;
+}
+
+/* ---------- 版面 ---------- */
+.b-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 16px;
+  align-items: start;
+}
+.b-status {
+  min-height: 20px;
+  margin: 8px 2px 0;
+  color: #455966;
+  font-size: 13px;
+}
+
+/* ---------- 遊戲地圖 ---------- */
+.b-map {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.b-map img {
+  pointer-events: none;
+}
+.b-layer {
+  position: absolute;
+  inset: 0;
+}
+.b-map.b-tool-add {
+  cursor: crosshair;
+}
+.b-map.b-tool-demolish .pin,
+.b-map.b-tool-demolish .b-sprite {
+  cursor: not-allowed;
+}
+.b-map.b-tool-move .pin,
+.b-map.b-tool-move .b-sprite {
+  cursor: grab;
+  touch-action: none;
+}
+.b-map .pin {
+  cursor: pointer;
+  z-index: 3;
+}
+.b-map .pin.b-dragging {
+  z-index: 6;
+}
+.b-map .pin.b-old:before {
+  background: var(--yellow);
+  content: attr(data-label) "・50+";
+}
+
+/* 原圖建築被拆除／遷出後覆蓋的整地區 */
+.b-patch {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(135deg, #00000010 0 6px, transparent 6px 14px),
+    radial-gradient(circle at 30% 40%, #cdb48a, #b9996b);
+  box-shadow: inset 0 0 0 2px #8f744d55, 0 3px 10px #0003;
+  opacity: 0.96;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 可重建的空地 */
+.b-lot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 2px dashed #f6c84c;
+  border-radius: 10px;
+  background: #f6c84c22;
+  color: #102334;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+.b-lot span {
+  display: inline-block;
+  background: #fff;
+  border-radius: 7px;
+  padding: 3px 6px;
+  box-shadow: 0 2px 6px #0003;
+  white-space: nowrap;
+}
+.b-lot.b-sel {
+  border-color: #ef5a58;
+  background: #ef5a5822;
+}
+
+/* 新建或遷移後的建築 */
+.b-sprite {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 8px;
+  border: 2px solid #ffffffcc;
+  box-shadow: 0 6px 14px #0005, inset 0 -8px 0 #0002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(14px, 2.4vw, 26px);
+  z-index: 2;
+}
+.b-sprite.b-sel {
+  outline: 3px solid #ef5a58;
+  outline-offset: 2px;
+}
+
+/* ---------- 側欄面板 ---------- */
+.b-panel {
+  display: grid;
+  gap: 12px;
+}
+.b-box {
+  background: #fff;
+  border: 1px solid #e1e3dc;
+  border-radius: 14px;
+  padding: 13px 14px;
+}
+.b-box h3 {
+  margin: 0 0 9px;
+  font-size: 15px;
+}
+.b-box p {
+  margin: 4px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #455966;
+}
+.b-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+.b-stats div {
+  background: #f3f6f5;
+  border-radius: 10px;
+  padding: 7px 2px;
+  font-size: 11px;
+  color: #64727d;
+}
+.b-stats b {
+  display: block;
+  font-size: 19px;
+  color: var(--ink);
+}
+.b-catalog {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+.b-catalog button {
+  border: 1px solid #dbe2df;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 6px;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+}
+.b-catalog button[aria-pressed="true"] {
+  border-color: var(--teal);
+  background: #e6f6f4;
+  font-weight: bold;
+  box-shadow: 0 0 0 2px var(--teal);
+}
+
+/* ---------- 3D 建築圖示 ---------- */
+.b-iso {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.b-catalog button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px 8px;
+  text-align: center;
+  background: linear-gradient(180deg, #f4f8fb, #fff 70%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.b-catalog button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px #17364522;
+}
+.b-cat-art {
+  display: block;
+  width: 100%;
+  max-width: 96px;
+  aspect-ratio: 88 / 80;
+}
+.b-cat-art .b-iso {
+  transition: transform 0.2s ease;
+}
+.b-catalog button:hover .b-cat-art .b-iso,
+.b-catalog button[aria-pressed="true"] .b-cat-art .b-iso {
+  transform: scale(1.06) translateY(-2px);
+}
+.b-cat-name {
+  font-size: 13px;
+  line-height: 1.2;
+}
+.b-sel-art {
+  width: 120px;
+  aspect-ratio: 88 / 80;
+  margin: -4px auto 4px;
+}
+
+/* 地圖上的 3D 建築：建築底部對齊標籤位置，標籤不會蓋住建築主體 */
+.b-sprite.b-art {
+  aspect-ratio: 88 / 80;
+  transform: translate(-50%, -84%);
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+}
+.b-sprite.b-art.b-sel {
+  outline: none;
+}
+.b-sprite.b-art.b-sel .b-iso {
+  filter: drop-shadow(0 0 2px #ef5a58) drop-shadow(0 0 3px #ef5a58);
+}
+.b-sprite.b-art .b-iso {
+  filter: drop-shadow(0 4px 4px #0004);
+}
+.b-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.b-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.b-list li > span {
+  flex: 1;
+}
+.b-list button {
+  border: 1px solid #dbe2df;
+  background: #fff;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.b-badge {
+  display: inline-block;
+  border-radius: 99px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: bold;
+  background: #eef3f2;
+  color: #455966;
+}
+.b-badge.b-old {
+  background: #fdf0c8;
+  color: #8a6400;
+}
+.b-badge.b-done {
+  background: #dff3e4;
+  color: #217a3c;
+}
+.b-badge.b-gone {
+  background: #fde3e2;
+  color: #b23431;
+}
+.b-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.b-log {
+  max-height: 150px;
+  overflow: auto;
+}
+.b-log li {
+  color: #64727d;
+  font-size: 12px;
+}
+
+/* ---------- 確認視窗 ---------- */
+.b-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #0b253a80;
+}
+.b-modal-card {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px 20px 18px;
+  box-shadow: 0 20px 50px #0b253a55;
+}
+.b-modal-card h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+}
+.b-modal-card p {
+  margin: 0;
+  color: #455966;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.b-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+.b-modal-actions .b-btn {
+  padding: 10px 16px;
+  font-size: 15px;
+}
+
+@media (max-width: 900px) {
+  .b-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 650px) {
+  .mode-tabs button {
+    font-size: 14px;
+    padding: 10px 4px;
+  }
+  .b-sep,
+  .b-spacer {
+    display: none;
+  }
+  .b-tool,
+  .b-btn {
+    padding: 8px 9px;
+    font-size: 13px;
+  }
+  .b-lot {
+    font-size: 10px;
+  }
+}
