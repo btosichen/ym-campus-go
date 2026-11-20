@@ -157,18 +157,81 @@
   content: attr(data-label) "・50+";
 }
 
-/* 原圖建築被拆除／遷出後覆蓋的整地區 */
-.b-patch {
+/* 原有建築模組：用輪廓裁切原始俯視圖，疊在空地底圖上 */
+.b-modules {
   position: absolute;
-  transform: translate(-50%, -50%);
-  border-radius: 10px;
-  background:
-    repeating-linear-gradient(135deg, #00000010 0 6px, transparent 6px 14px),
-    radial-gradient(circle at 30% 40%, #cdb48a, #b9996b);
-  box-shadow: inset 0 0 0 2px #8f744d55, 0 3px 10px #0003;
-  opacity: 0.96;
-  pointer-events: none;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 1;
+  pointer-events: none;
+}
+.b-module {
+  pointer-events: visiblePainted;
+  cursor: pointer;
+}
+.b-map.b-tool-move .b-module {
+  cursor: grab;
+  touch-action: none;
+}
+.b-map.b-tool-demolish .b-module {
+  cursor: not-allowed;
+}
+.b-map.b-tool-add .b-module {
+  cursor: crosshair;
+}
+.b-module-edge polygon {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.b-module:hover .b-module-edge polygon {
+  stroke: #ffffffcc;
+}
+.b-module.b-sel .b-module-edge polygon {
+  stroke: #ef5a58;
+  stroke-width: 4;
+}
+.b-module.b-dragging {
+  opacity: 0.85;
+}
+.b-map.b-tool-demolish .b-module:hover .b-module-edge polygon {
+  stroke: #ef5a58;
+  stroke-dasharray: 8 5;
+}
+.b-sel-thumb {
+  margin: -2px 0 6px;
+  background: #eef2ef;
+  border-radius: 10px;
+  padding: 6px;
+}
+.b-thumb {
+  display: block;
+  width: 100%;
+  max-height: 130px;
+}
+.b-empty-note {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: #ffffffe6;
+  box-shadow: 0 8px 22px #17364533;
+  color: var(--ink);
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.6;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.b-empty-note small {
+  font-weight: normal;
+  color: #455966;
 }
 
 /* 可重建的空地 */
