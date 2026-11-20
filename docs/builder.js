@@ -16,7 +16,7 @@
   "use strict";
 
   var STORAGE_KEY = "ym-campus-go-builder-state";
-  var SCHEMA_VERSION = 1;
+  var SCHEMA_VERSION = 2;
   var HISTORY_LIMIT = 100;
   var RESET_MESSAGE =
     "確定要放棄目前的規劃，將遊戲地圖恢復成原始校園配置嗎？這不會影響校園導覽地圖。";
@@ -24,22 +24,62 @@
   /* 屋齡 50 年以上建築（「行政大樓」在導覽資料中名稱為「行政樓」） */
   var OLD_BUILDINGS = ["行政樓", "藝采樓", "立志樓", "勤學樓", "向陽樓", "知行館", "台元館"];
 
-  /* 各建築在俯視圖上的大致範圍：[中心X%, 中心Y%, 寬%, 高%]
-     只在遊戲中用來顯示「拆除後的整地範圍」，不影響導覽頁。 */
-  var FOOTPRINTS = {
-    "行政樓": [63, 49, 12.5, 12],
-    "向陽樓": [65.5, 24, 16.5, 14],
-    "知行館": [49.5, 46, 12, 17],
-    "立志樓": [49, 21, 30, 16],
-    "勤學樓": [76.5, 36, 17, 13],
-    "悅聞樓": [56, 10.5, 17.5, 10],
-    "求真樓": [68, 13.5, 8, 9],
-    "藝采樓": [79, 56, 15.5, 13],
-    "活動中心": [55, 74, 19, 30],
-    "台元館": [45.5, 33, 14.5, 13],
-    "漾泉館": [42, 13.5, 11, 8],
-    "操場": [28, 55, 35, 62],
+  /* ---------------- 模組化建築 ----------------
+     遊戲底圖改用「空地版校園圖」（campus-empty.webp，只有道路、樹木與空地）。
+     原圖上的每一棟建築都是一個獨立模組：用下面的輪廓（原圖像素座標，
+     圖片尺寸 1672×941）從原始俯視圖 campus-overview.png 裁切出來，
+     疊在空地底圖上，可以單獨移動或拆除；全部拆光就只剩空地。 */
+  var IMG_W = 1672;
+  var IMG_H = 941;
+  var OVERVIEW_SRC = "campus-overview.png";
+  var MODULES = {
+    "操場": { ground: true, polys: [[170,340, 178,295, 215,250, 290,214, 380,207, 535,200, 548,240, 600,330, 640,400, 706,471, 718,507, 790,640, 778,700, 774,760, 785,815, 760,833, 643,846, 520,836, 470,815, 435,785, 170,372]] },
+    "網球場": { ground: true, polys: [[1345,398, 1465,313, 1607,411, 1500,506]] },
+    "漾泉館": { polys: [[602,107, 783,89, 790,97, 791,142, 610,160, 602,150]] },
+    "悅聞樓": { polys: [[790,88, 1068,58, 1078,72, 1079,118, 794,142]] },
+    "求真樓": { polys: [[1078,96, 1090,85, 1205,146, 1208,170, 1085,166]] },
+    "立志樓": { polys: [[577,163, 1066,108, 1082,122, 1082,195, 973,240, 588,268, 578,255]] },
+    "向陽樓": { polys: [[970,205, 987,190, 1183,160, 1200,170, 1212,192, 1245,232, 1240,252, 1210,262, 980,282, 970,262]] },
+    "台元館": { polys: [[642,293, 857,249, 881,318, 881,340, 664,379, 642,315]] },
+    "勤學樓": { polys: [[1143,307, 1369,275, 1397,280, 1405,300, 1405,358, 1137,392, 1126,330]] },
+    "知行館": { polys: [[698,416, 719,408, 719,365, 855,339, 875,373, 899,374, 916,390, 918,445, 846,454, 805,503, 774,529, 759,503, 748,473, 726,473, 698,439]] },
+    "行政樓": { polys: [[953,442, 1136,414, 1149,467, 1149,499, 972,521, 951,478]] },
+    "藝采樓": { polys: [[1188,494, 1422,460, 1446,505, 1447,530, 1250,580, 1192,556]] },
+    "活動中心": { polys: [
+      [803,503, 844,496, 846,456, 903,453, 935,461, 953,515, 992,611, 994,641, 892,658, 874,654, 810,572],
+      [774,729, 777,712, 787,695, 803,680, 825,667, 851,656, 880,649, 912,645, 944,645, 976,649, 1005,656, 1031,667, 1053,680, 1069,695, 1079,712, 1082,729, 1082,796, 1079,813, 1069,830, 1053,845, 1031,858, 1005,869, 976,876, 944,880, 912,880, 880,876, 851,869, 825,858, 803,845, 787,830, 777,813, 774,796],
+    ] },
   };
+
+  /* 導覽資料沒有、但底圖上原本就有的設施（只出現在遊戲中） */
+  var EXTRA_ROWS = [
+    ["網球場", "Tennis Court", "運動場館", 88.2, 43.6, "網球場、休息區"],
+  ];
+
+  function moduleBox(name) {
+    var m = MODULES[name];
+    if (!m) return null;
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    m.polys.forEach(function (p) {
+      for (var i = 0; i < p.length; i += 2) {
+        x0 = Math.min(x0, p[i]); x1 = Math.max(x1, p[i]);
+        y0 = Math.min(y0, p[i + 1]); y1 = Math.max(y1, p[i + 1]);
+      }
+    });
+    return { x0: x0, y0: y0, x1: x1, y1: y1 };
+  }
+
+  /* 各建築在俯視圖上的範圍：[中心X%, 中心Y%, 寬%, 高%]（由模組輪廓計算） */
+  var FOOTPRINTS = {};
+  Object.keys(MODULES).forEach(function (name) {
+    var bx = moduleBox(name);
+    FOOTPRINTS[name] = [
+      round1(((bx.x0 + bx.x1) / 2 / IMG_W) * 100),
+      round1(((bx.y0 + bx.y1) / 2 / IMG_H) * 100),
+      round1(((bx.x1 - bx.x0) / IMG_W) * 100),
+      round1(((bx.y1 - bx.y0) / IMG_H) * 100),
+    ];
+  });
 
   var CATEGORY_COLORS = {
     "行政服務": "#7fb7c9",
@@ -97,10 +137,11 @@
 
   /* ---------------- 唯讀原始資料 ---------------- */
   // 讀取導覽頁的原有資料 P（只讀，不修改），轉成結構化物件後深層凍結。
-  var sourceRows = typeof P !== "undefined" && Array.isArray(P) ? P : [];
+  var sourceRows = (typeof P !== "undefined" && Array.isArray(P) ? P : []).concat(EXTRA_ROWS);
   var originalCampusData = deepFreeze({
     version: SCHEMA_VERSION,
     buildings: sourceRows.map(function (row, i) {
+      if (i >= sourceRows.length - EXTRA_ROWS.length) i = "x" + (i - sourceRows.length + EXTRA_ROWS.length);
       var fp = FOOTPRINTS[row[0]] || [row[3], row[4], 10, 10];
       return {
         id: "o" + i,
@@ -136,6 +177,18 @@
     };
   }
 
+  /* 舊版（v1）存檔升級：補上底圖中原有、但 v1 沒有的設施模組 */
+  function migrate(d) {
+    if (d && typeof d === "object" && d.version === 1 && Array.isArray(d.buildings)) {
+      originalCampusData.buildings.forEach(function (o) {
+        var exists = d.buildings.some(function (b) { return b && b.origId === o.id; });
+        if (o.id.indexOf("ox") === 0 && !exists) d.buildings.push(deepClone(o));
+      });
+      d.version = SCHEMA_VERSION;
+    }
+    return d;
+  }
+
   function isValidGame(d) {
     if (!d || typeof d !== "object" || d.version !== SCHEMA_VERSION) return false;
     if (!Array.isArray(d.buildings) || !Array.isArray(d.lots) || !d.stats || !Array.isArray(d.log)) return false;
@@ -154,7 +207,8 @@
       var raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       var saved = JSON.parse(raw);
-      return isValidGame(saved && saved.data) ? saved.data : null;
+      var data = migrate(saved && saved.data);
+      return isValidGame(data) ? data : null;
     } catch (e) {
       return null;
     }
@@ -214,7 +268,46 @@
     return b.source === "original" && (b.x !== b.origX || b.y !== b.origY);
   }
   function hasSprite(b) {
-    return b.source !== "original" || isMoved(b);
+    return b.source !== "original";
+  }
+  function isModule(b) {
+    return b.source === "original" && !!MODULES[b.name];
+  }
+  /* 模組相對原位置的位移（原圖像素） */
+  function moduleShift(b, x, y) {
+    return {
+      x: round1((((x == null ? b.x : x) - b.origX) / 100) * IMG_W),
+      y: round1((((y == null ? b.y : y) - b.origY) / 100) * IMG_H),
+    };
+  }
+  function polyPoints(p) {
+    var out = [];
+    for (var i = 0; i < p.length; i += 2) out.push(p[i] + "," + p[i + 1]);
+    return out.join(" ");
+  }
+  function clipId(b) {
+    return "bClip-" + b.id;
+  }
+  /* 原有建築的模組圖片（SVG：用輪廓裁切原始俯視圖） */
+  function moduleGroup(b, sel) {
+    var m = MODULES[b.name];
+    var s = moduleShift(b);
+    var shapes = m.polys.map(function (p) { return '<polygon points="' + polyPoints(p) + '"/>'; }).join("");
+    return '<clipPath id="' + clipId(b) + '" clipPathUnits="userSpaceOnUse">' + shapes + "</clipPath>" +
+      '<g class="b-module' + (sel ? " b-sel" : "") + '" data-id="' + esc(b.id) + '" data-module="1" transform="translate(' +
+      s.x + " " + s.y + ')">' +
+      '<g clip-path="url(#' + clipId(b) + ')"><image href="' + OVERVIEW_SRC + '" width="' + IMG_W + '" height="' + IMG_H +
+      '" preserveAspectRatio="none"/></g>' +
+      '<g class="b-module-edge">' + shapes + "</g></g>";
+  }
+  function moduleThumb(b) {
+    var bx = moduleBox(b.name);
+    var pad = 6;
+    var id = "bThumb-" + b.id;
+    var shapes = MODULES[b.name].polys.map(function (p) { return '<polygon points="' + polyPoints(p) + '"/>'; }).join("");
+    return '<svg class="b-thumb" viewBox="' + (bx.x0 - pad) + " " + (bx.y0 - pad) + " " + (bx.x1 - bx.x0 + pad * 2) + " " +
+      (bx.y1 - bx.y0 + pad * 2) + '" aria-hidden="true"><clipPath id="' + id + '">' + shapes + '</clipPath><g clip-path="url(#' +
+      id + ')"><image href="' + OVERVIEW_SRC + '" width="' + IMG_W + '" height="' + IMG_H + '"/></g></svg>';
   }
   function uniqueName(base) {
     var names = gameCampusData.buildings.map(function (b) { return b.name; });
@@ -263,7 +356,7 @@
     if (!b) return;
     // 只有「原圖上的建築（原位）」或「蓋在空地上的重建建築」拆除後才會留下空地；
     // 玩家自行新增、或已遷移的建築，拆掉後底下就是原本地面，不另外產生空地圖示。
-    var leavesLot = b.source === "rebuilt" || (b.source === "original" && !isMoved(b));
+    var leavesLot = b.source === "rebuilt" || b.source === "original";
     ui.selected = null;
     commit(function (d) {
       var idx = d.buildings.indexOf(findBuilding(id));
@@ -289,6 +382,32 @@
       : "已拆除「" + b.name + "」。");
   }
 
+  /* 全部拆除：地圖上只剩空地底圖（不產生空地圖示，避免畫面雜亂） */
+  function demolishAll() {
+    var count = gameCampusData.buildings.length;
+    if (!count && !gameCampusData.lots.length) {
+      say("校園已經是一片空地了。");
+      return;
+    }
+    confirmDialog(
+      "確定要拆除遊戲地圖上的全部 " + count + " 棟建築，只留下空地嗎？可以按「復原」取消，這不會影響校園導覽地圖。",
+      "全部拆除",
+      function () {
+        ui.selected = null;
+        commit(function (d) {
+          var old = d.buildings.filter(function (b) { return b.age50; }).length;
+          d.buildings = [];
+          d.lots = [];
+          d.stats.demolished += count;
+          d.stats.demolishedOld += old;
+          addLog("全部拆除 " + count + " 棟建築，校園只剩空地");
+        });
+        say("已拆除全部建築，校園只剩空地。可以從建築選單開始重新規劃，或按「復原」取消。");
+      },
+      "全部拆除"
+    );
+  }
+
   function clearLots(lotId) {
     var count = lotId ? (findLot(lotId) ? 1 : 0) : gameCampusData.lots.length;
     if (!count) {
@@ -307,20 +426,8 @@
     var b = findBuilding(id);
     if (!b || (b.x === x && b.y === y)) return;
     commit(function (d) {
+      // 建築是獨立模組，搬走後原址直接露出底圖的空地，不另外產生空地圖示
       var t = findBuilding(id);
-      var leavingOriginalSite = t.source === "original" && !isMoved(t);
-      if (leavingOriginalSite) {
-        // 原有建築第一次遷出時，原址成為可重建的空地
-        d.lots.push({
-          id: newId("l"),
-          x: round1(t.origX + t.dx),
-          y: round1(t.origY + t.dy),
-          w: t.w,
-          h: t.h,
-          former: t.name + "舊址",
-          age50: false,
-        });
-      }
       t.x = x;
       t.y = y;
       d.stats.moved++;
@@ -376,7 +483,7 @@
 
   /* 網頁內建確認視窗：不使用 window.confirm()，
      因為部分瀏覽器（App 內建瀏覽器、預覽視窗）會封鎖它並直接回傳「取消」。 */
-  function confirmDialog(message, okText, onOk) {
+  function confirmDialog(message, okText, onOk, title) {
     var old = document.getElementById("bConfirm");
     if (old) old.remove();
     var lastFocus = document.activeElement;
@@ -385,7 +492,7 @@
     wrap.className = "b-modal";
     wrap.innerHTML =
       '<div class="b-modal-card" role="alertdialog" aria-modal="true" aria-labelledby="bConfirmTitle" aria-describedby="bConfirmMsg">' +
-      '<h3 id="bConfirmTitle">恢復原始校園</h3>' +
+      '<h3 id="bConfirmTitle">' + esc(title || "恢復原始校園") + "</h3>" +
       '<p id="bConfirmMsg">' + esc(message) + "</p>" +
       '<div class="b-modal-actions">' +
       '<button type="button" class="b-btn" data-m="cancel">取消</button>' +
@@ -452,21 +559,21 @@
     if (els.status) els.status.textContent = msg;
   }
 
-  function coverPatches() {
-    // 原圖中的建築若已被拆除或遷出，用整地圖塊覆蓋其原始位置
-    return originalCampusData.buildings.filter(function (o) {
-      return !gameCampusData.buildings.some(function (b) {
-        return b.origId === o.id && !isMoved(b);
-      });
-    });
-  }
-
   function renderMap() {
-    var html = "";
-    coverPatches().forEach(function (o) {
-      html += '<div class="b-patch" style="left:' + (o.x + o.dx) + "%;top:" + (o.y + o.dy) +
-        "%;width:" + o.w + "%;height:" + o.h + '%"></div>';
+    // 1) 原有建築模組：疊在空地底圖上，地面設施（操場、球場）在最下層，其餘依位置由後往前排
+    var mods = gameCampusData.buildings.filter(isModule).sort(function (a, b) {
+      var ga = MODULES[a.name].ground ? 0 : 1, gb = MODULES[b.name].ground ? 0 : 1;
+      if (ga !== gb) return ga - gb;
+      return (moduleBox(a.name).y1 + moduleShift(a).y) - (moduleBox(b.name).y1 + moduleShift(b).y);
     });
+    var html = '<svg class="b-modules" viewBox="0 0 ' + IMG_W + " " + IMG_H +
+      '" preserveAspectRatio="none" aria-hidden="true">' +
+      mods.map(function (b) {
+        return moduleGroup(b, ui.selected && ui.selected.kind === "building" && ui.selected.id === b.id);
+      }).join("") + "</svg>";
+    if (!gameCampusData.buildings.length && !gameCampusData.lots.length) {
+      html += '<div class="b-empty-note">🏗️ 校園已全部清空，只剩空地<br><small>從建築選單選一棟建築，點地圖開始蓋</small></div>';
+    }
     gameCampusData.lots.forEach(function (l) {
       var sel = ui.selected && ui.selected.kind === "lot" && ui.selected.id === l.id;
       html += '<button type="button" class="b-lot' + (sel ? " b-sel" : "") + '" data-lot="' + esc(l.id) +
@@ -500,6 +607,7 @@
     els.undo.disabled = !undoStack.length;
     els.redo.disabled = !redoStack.length;
     els.clearLots.disabled = !gameCampusData.lots.length;
+    els.demolishAll.disabled = !gameCampusData.buildings.length && !gameCampusData.lots.length;
     els.age.classList.toggle("b-on", ui.showAge);
     els.age.setAttribute("aria-pressed", String(ui.showAge));
   }
@@ -524,6 +632,7 @@
       var origin = b.source === "original" ? (isMoved(b) ? "原有建築（已遷移）" : "原有建築")
         : b.source === "rebuilt" ? "重建建築（原" + esc(b.replaces || "空地") + "）" : "新建建築";
       if (hasSprite(b)) html += '<div class="b-sel-art">' + artFor(b, true) + "</div>";
+      else if (isModule(b)) html += '<div class="b-sel-thumb">' + moduleThumb(b) + "</div>";
       html += "<h3>" + esc(b.name) + "</h3>";
       html += '<p><span class="b-badge">' + esc(b.category) + "</span> " +
         '<span class="b-badge">' + origin + "</span>" +
@@ -615,7 +724,7 @@
     var tips = {
       select: "選取：點選建築或空地查看資訊。",
       add: "新增：先在建築選單選擇建築，再點地圖放置。",
-      move: "移動：按住建築標籤拖曳到新位置。",
+      move: "移動：按住建築本體或標籤，拖曳到新位置。",
       demolish: "拆除：點選要拆除的建築（可按復原取消）。",
     };
     say(tips[tool]);
@@ -656,6 +765,8 @@
   function onPointerDown(e) {
     var target = e.target.closest("[data-id]");
     if (!target || !els.layer.contains(target) || e.button > 0) return;
+    // 新增模式：點在建築模組上也直接放置新建築（交給 click 處理）
+    if (ui.tool === "add" && ui.pending && target.hasAttribute("data-module")) return;
     var b = findBuilding(target.getAttribute("data-id"));
     if (!b) return;
     var p = pointToPercent(e);
@@ -678,7 +789,11 @@
     drag.y = round1(clamp(p.y + drag.offY, 2, 98));
     var b = findBuilding(drag.id);
     Array.prototype.forEach.call(els.layer.querySelectorAll('[data-id="' + drag.id + '"]'), function (el) {
-      if (el.classList.contains("pin")) {
+      if (el.hasAttribute("data-module")) {
+        var s = moduleShift(b, drag.x, drag.y);
+        el.setAttribute("transform", "translate(" + s.x + " " + s.y + ")");
+        el.classList.add("b-dragging");
+      } else if (el.classList.contains("pin")) {
         el.style.left = drag.x + "%";
         el.style.top = drag.y + "%";
         el.classList.add("b-dragging");
@@ -712,6 +827,7 @@
       return;
     }
     var bEl = e.target.closest("[data-id]");
+    if (bEl && bEl.hasAttribute("data-module") && ui.tool === "add" && ui.pending) bEl = null;
     if (bEl) {
       // 滑鼠／觸控點擊已由 pointer 事件處理；鍵盤（Enter/空白鍵）觸發時 detail 為 0
       if (e.detail === 0) activateBuilding(bEl.getAttribute("data-id"));
@@ -748,6 +864,7 @@
       else if (t.id === "bRedo") redo();
       else if (t.id === "bSave") manualSave();
       else if (t.id === "bClearLots") clearLots(null);
+      else if (t.id === "bDemolishAll") demolishAll();
       else if (t.id === "bReset") resetGame();
       else if (t.id === "bAge") {
         ui.showAge = !ui.showAge;
@@ -812,6 +929,7 @@
       undo: $("bUndo"),
       redo: $("bRedo"),
       clearLots: $("bClearLots"),
+      demolishAll: $("bDemolishAll"),
       age: $("bAge"),
     };
     var saved = loadGame();
